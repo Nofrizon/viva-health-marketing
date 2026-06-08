@@ -1,119 +1,321 @@
 'use client'
 import { useState, useEffect } from 'react'
+import Sidebar from '@/components/Sidebar'
+import TopBar from '@/components/TopBar'
 import { supabase } from '@/lib/supabase'
+import { Shield, TrendingDown, AlertCircle, CheckCircle, Clock, MessageSquare, Zap } from 'lucide-react'
+
+interface AuditResult {
+  name: string
+  avg_rating: string
+  total: number
+  bad: number
+  good: number
+  ai_report: string
+  raw_reviews: any[]
+  timestamp: string
+  audit_period: string
+}
 
 export default function AuditPage() {
-  const [query, setQuery] = useState('');
-  const [days, setDays] = useState(30);
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  const [unitList, setUnitList] = useState<string[]>([]);
+  const [query, setQuery] = useState('')
+  const [days, setDays] = useState(30)
+  const [data, setData] = useState<AuditResult | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [unitList, setUnitList] = useState<string[]>([])
 
-  // Mengambil daftar nama unit untuk Autocomplete
+  // Fetch unit list for autocomplete
   useEffect(() => {
     const fetchUnits = async () => {
-      const { data } = await supabase.from('audit_results').select('nama_unit');
-      if (data) {
-        const unique = Array.from(new Set(data.map(i => i.nama_unit)));
-        setUnitList(unique);
+      try {
+        const { data } = await supabase.from('audit_results').select('nama_unit')
+        if (data) {
+          const unique = Array.from(new Set(data.map((i: any) => i.nama_unit)))
+          setUnitList(unique as string[])
+        }
+      } catch (err) {
+        console.error('Failed to fetch units:', err)
       }
-    };
-    fetchUnits();
-  }, []);
+    }
+    fetchUnits()
+  }, [])
 
   const runAudit = async () => {
-    if (!query) return;
-    setLoading(true);
-    const res = await fetch('/api/audit', {
-      method: 'POST',
-      body: JSON.stringify({ query, days })
-    });
-    const result = await res.json();
-    setData(result);
-    setLoading(false);
+    if (!query.trim()) {
+      setError('Masukkan nama cabang terlebih dahulu')
+      return
+    }
+    setError('')
+    setLoading(true)
+    setData(null)
+
+    try {
+      const res = await fetch('/api/audit', {
+        method: 'POST',
+        body: JSON.stringify({ query, days })
+      })
+
+      if (!res.ok) {
+        const errorData = await res.json()
+        throw new Error(errorData.message || 'Audit gagal')
+      }
+
+      const result = await res.json()
+      setData(result)
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Terjadi kesalahan'
+      setError(errorMsg)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') runAudit()
+  }
+
+  const getReportSummary = (report: string) => {
+    const lines = report.split('\n')
+    return lines.slice(0, 2).join('\n')
   }
 
   return (
-    <div className="min-h-screen bg-[#f0f2f5] p-4 md:p-8 text-black">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-blue-700">Viva Audit AI</h1>
-          <a href="/seo" className="text-sm font-bold bg-blue-100 text-blue-700 px-4 py-2 rounded-lg">Rank Tracker 🚀</a>
-        </div>
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Sidebar */}
+      <Sidebar />
 
-        {/* Input Form Berbasis Card */}
-        <div className="bg-white p-4 rounded-2xl shadow-sm mb-6 border border-gray-100">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
-            <div className="md:col-span-6 relative">
-              <input 
-                list="units"
-                className="w-full border-none bg-gray-50 p-3 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Masukkan Nama Cabang..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-              />
-              <datalist id="units">
-                {unitList.map(u => <option key={u} value={u} />)}
-              </datalist>
-            </div>
-            <div className="md:col-span-3">
-              <select 
-                className="w-full bg-gray-50 p-3 rounded-xl outline-none border-none"
-                value={days}
-                onChange={(e) => setDays(Number(e.target.value))}
-              >
-                <option value={30}>30 Hari</option>
-                <option value={90}>3 Bulan</option>
-              </select>
-            </div>
-            <button 
-              onClick={runAudit}
-              disabled={loading}
-              className="md:col-span-3 bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition disabled:opacity-50"
-            >
-              {loading ? 'Analisis...' : 'Audit'}
-            </button>
-          </div>
-        </div>
+      {/* Main Content */}
+      <div className="flex-1 ml-64 flex flex-col">
+        <TopBar />
 
-        {data && (
-          <>
-            {/* Stats Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-              {[
-                { label: 'Rating', val: data.avg_rating, color: 'text-gray-800' },
-                { label: 'Total', val: data.total, color: 'text-gray-800' },
-                { label: 'Buruk', val: data.bad, color: 'text-red-500' },
-                { label: 'Baik', val: data.good, color: 'text-green-500' },
-              ].map((s, i) => (
-                <div key={i} className="bg-white p-4 rounded-2xl shadow-sm text-center border border-gray-100">
-                  <p className="text-xs text-gray-400 uppercase font-bold mb-1">{s.label}</p>
-                  <p className={`text-2xl font-black ${s.color}`}>{s.val}</p>
+        {/* Content */}
+        <main className="flex-1 p-8 overflow-auto">
+          <div className="max-w-6xl">
+            {/* Header */}
+            <div className="mb-8">
+              <h1 className="text-4xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+                <Shield className="text-purple-600" size={32} />
+                AI Review Audit
+              </h1>
+              <p className="text-gray-600">Senior Auditor AI menganalisis ulasan pelanggan dan memberikan rekomendasi</p>
+            </div>
+
+            {/* Input Card */}
+            <div className="bg-white rounded-2xl shadow-lg p-8 mb-8 border border-gray-100">
+              <div className="grid md:grid-cols-12 gap-4 mb-4">
+                <div className="md:col-span-5 relative">
+                  <input
+                    list="units"
+                    placeholder="Cari nama cabang..."
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 placeholder-gray-400"
+                  />
+                  <datalist id="units">
+                    {unitList.map((u) => (
+                      <option key={u} value={u} />
+                    ))}
+                  </datalist>
                 </div>
-              ))}
+
+                <div className="md:col-span-3">
+                  <select
+                    value={days}
+                    onChange={(e) => setDays(Number(e.target.value))}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 bg-white cursor-pointer"
+                  >
+                    <option value={30}>30 Hari Terakhir</option>
+                    <option value={90}>90 Hari Terakhir</option>
+                  </select>
+                </div>
+
+                <button
+                  onClick={runAudit}
+                  disabled={loading}
+                  className="md:col-span-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-semibold py-3 rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Menganalisis...
+                    </>
+                  ) : (
+                    <>
+                      <Zap size={18} />
+                      Jalankan Audit
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Info */}
+              <p className="text-sm text-gray-500 flex items-center gap-2">
+                <AlertCircle size={16} />
+                Audit menganalisis ulasan dari Google Maps dan memberikan insight mendalam
+              </p>
             </div>
 
-            {/* Review Slider (Horizontal Scroll) */}
-            <h3 className="font-bold mb-3 text-gray-700 ml-1">Keluhan (1-3★)</h3>
-            <div className="flex overflow-x-auto gap-4 pb-4 no-scrollbar">
-              {data.raw_reviews.length > 0 ? data.raw_reviews.map((r: any, i: number) => (
-                <div key={i} className="min-w-[280px] bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
-                  <p className="text-sm italic text-gray-600 line-clamp-3">"{r.text}"</p>
-                  <div className="flex justify-between items-center mt-4">
-                    <span className="bg-red-100 text-red-600 text-[10px] font-bold px-2 py-1 rounded-full">{r.rating} ★</span>
-                    <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">{r.author}</span>
+            {/* Error Message */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-8 flex items-center gap-3">
+                <AlertCircle className="text-red-500" size={20} flex-shrink-0 />
+                <p className="text-red-700">{error}</p>
+              </div>
+            )}
+
+            {/* Results */}
+            {data && (
+              <div className="space-y-6 animate-in fade-in">
+                {/* Stats */}
+                <div className="grid md:grid-cols-4 gap-4">
+                  <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+                    <p className="text-gray-600 text-sm font-medium mb-2 flex items-center gap-2">
+                      <span className="text-xl">⭐</span>
+                      Rating Rata-rata
+                    </p>
+                    <p className="text-4xl font-bold text-gray-900">{data.avg_rating}</p>
+                  </div>
+
+                  <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+                    <p className="text-gray-600 text-sm font-medium mb-2 flex items-center gap-2">
+                      <MessageSquare size={16} />
+                      Total Ulasan
+                    </p>
+                    <p className="text-4xl font-bold text-blue-600">{data.total}</p>
+                  </div>
+
+                  <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+                    <p className="text-gray-600 text-sm font-medium mb-2 flex items-center gap-2">
+                      <TrendingDown size={16} />
+                      Negatif
+                    </p>
+                    <p className="text-4xl font-bold text-red-600">{data.bad}</p>
+                  </div>
+
+                  <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+                    <p className="text-gray-600 text-sm font-medium mb-2 flex items-center gap-2">
+                      <CheckCircle size={16} />
+                      Positif
+                    </p>
+                    <p className="text-4xl font-bold text-green-600">{data.good}</p>
                   </div>
                 </div>
-              )) : <div className="text-green-600 font-medium p-4 bg-green-50 rounded-xl w-full">Tidak ada ulasan negatif. ✨</div>}
-            </div>
 
-            {/* AI Report */}
-            <h3 className="font-bold mt-6 mb-3 text-gray-700 ml-1">Analisis Senior Auditor</h3>
-            <div className="bg-[#fffdf0] border-l-4 border-amber-400 p-5 rounded-2xl shadow-sm">
-              <p className="text-sm text-amber-900 leading-relaxed whitespace-pre-wrap">{data.ai_report}</p>
-            </div>
-          </>
-        )}
+                {/* Negative Reviews */}
+                {data.raw_reviews.length > 0 && (
+                  <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                      <AlertCircle className="text-red-500" size={24} />
+                      Ulasan Negatif ({data.raw_reviews.length})
+                    </h2>
+
+                    <div className="grid md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+                      {data.raw_reviews.map((review, idx) => (
+                        <div
+                          key={idx}
+                          className="p-4 border border-red-200 bg-red-50 rounded-lg hover:shadow-md transition"
+                        >
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex gap-1">
+                              {[...Array(5)].map((_, i) => (
+                                <span
+                                  key={i}
+                                  className={i < review.rating ? 'text-yellow-400' : 'text-gray-300'}
+                                >
+                                  ★
+                                </span>
+                              ))}
+                            </div>
+                            <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded font-semibold">
+                              {review.rating}★
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-700 mb-2 italic">"{review.text}"</p>
+                          <p className="text-xs text-gray-500">— {review.author || 'Anonim'}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* AI Report */}
+                <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl shadow-lg p-8 border border-purple-200">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <Zap className="text-purple-600" size={24} />
+                    Analisis Senior Auditor AI
+                  </h2>
+
+                  <div className="bg-white rounded-xl p-6 border border-purple-100">
+                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap text-sm font-medium">
+                      {data.ai_report}
+                    </p>
+                  </div>
+
+                  {/* Metadata */}
+                  <div className="mt-4 flex gap-4 text-xs text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <Clock size={14} />
+                      <span>{new Date(data.timestamp).toLocaleDateString('id-ID')}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Shield size={14} />
+                      <span>{data.audit_period}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Recommendations */}
+                <div className="bg-gradient-to-br from-emerald-50 to-blue-50 rounded-2xl shadow-lg p-8 border border-emerald-200">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-4">💡 Action Items</h2>
+                  <ul className="space-y-3">
+                    <li className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">
+                        1
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900">Review & Respons Ulasan Negatif</p>
+                        <p className="text-sm text-gray-600 mt-1">Respons cepat dalam 24 jam bisa meningkatkan kepuasan pelanggan hingga 30%</p>
+                      </div>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">
+                        2
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900">Identifikasi Masalah Root Cause</p>
+                        <p className="text-sm text-gray-600 mt-1">Tinjau laporan AI di atas untuk memahami pola masalah yang berulang</p>
+                      </div>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">
+                        3
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900">Implementasi Improvement</p>
+                        <p className="text-sm text-gray-600 mt-1">Follow up rekomendasi AI dan track progress dengan audit berkala</p>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            )}
+
+            {/* Empty State */}
+            {!loading && !data && !error && (
+              <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl shadow-lg p-12 border border-purple-200 text-center">
+                <div className="w-20 h-20 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Shield className="text-purple-600" size={40} />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Mulai Audit Sekarang</h2>
+                <p className="text-gray-600 max-w-md mx-auto">
+                  Ketik nama cabang untuk menganalisis ulasan pelanggan dengan AI dan dapatkan insight mendalam untuk improvement
+                </p>
+              </div>
+            )}
+          </div>
+        </main>
       </div>
     </div>
   )
