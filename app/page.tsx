@@ -3,6 +3,15 @@ import Link from 'next/link'
 import { ArrowRight, MapPin, Shield, BarChart3, Zap, CheckCircle } from 'lucide-react'
 
 export default function HomePage() {
+  const benefits = [
+    'Monitor semua cabang dari satu dashboard',
+    'AI-powered insights untuk decision making',
+    'Real-time Google Maps ranking tracking',
+    'Automated review analysis & recommendations',
+    'Detailed audit reports untuk setiap branch',
+    'Easy integration dengan workflow existing'
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-50">
       {/* Navigation Bar */}
@@ -21,9 +30,9 @@ export default function HomePage() {
             <Link href="/audit" className="text-gray-700 hover:text-blue-600 font-medium transition">
               AI Audit
             </Link>
-            <button className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-2 rounded-lg font-semibold hover:shadow-lg transition">
+            <Link href="/login" className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-2 rounded-lg font-semibold hover:shadow-lg transition">
               Log In
-            </button>
+            </Link>
           </div>
         </div>
       </nav>
@@ -36,16 +45,25 @@ export default function HomePage() {
               🚀 Powered by AI
             </div>
             <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-              Kelola Reputasi Apotek <span className="bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">Secara Otomatis</span>
+              Kelola Reputasi Apotek{' '}
+              <span className="bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+                Secara Otomatis
+              </span>
             </h2>
             <p className="text-xl text-gray-600 mb-8 leading-relaxed">
               Pantau ranking Google Maps, analisis ulasan pelanggan, dan tingkatkan reputasi digital Anda dengan AI Senior Auditor. Satu platform untuk seluruh kebutuhan marketing Anda.
             </p>
             <div className="flex gap-4">
-              <Link href="/seo" className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-3 rounded-lg font-semibold hover:shadow-xl transition flex items-center gap-2">
+              <Link 
+                href="/seo" 
+                className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-3 rounded-lg font-semibold hover:shadow-xl transition flex items-center gap-2"
+              >
                 Mulai Tracking <ArrowRight size={18} />
               </Link>
-              <Link href="/audit" className="border-2 border-gray-300 text-gray-900 px-8 py-3 rounded-lg font-semibold hover:border-blue-600 hover:bg-blue-50 transition">
+              <Link 
+                href="/audit" 
+                className="border-2 border-gray-300 text-gray-900 px-8 py-3 rounded-lg font-semibold hover:border-blue-600 hover:bg-blue-50 transition"
+              >
                 Lihat AI Audit
               </Link>
             </div>
@@ -93,8 +111,13 @@ export default function HomePage() {
               <MapPin className="text-blue-600" size={28} />
             </div>
             <h3 className="text-2xl font-bold text-gray-900 mb-3">Local SEO Tracker</h3>
-            <p className="text-gray-600 mb-6">Cek posisi cabang Anda di Google Maps secara real-time. Ketahui di mana Anda berada dibandingkan kompetitor.</p>
-            <Link href="/seo" className="text-blue-600 font-semibold hover:text-blue-700 flex items-center gap-2">
+            <p className="text-gray-600 mb-6">
+              Cek posisi cabang Anda di Google Maps secara real-time. Ketahui di mana Anda berada dibandingkan kompetitor.
+            </p>
+            <Link 
+              href="/seo" 
+              className="text-blue-600 font-semibold hover:text-blue-700 flex items-center gap-2"
+            >
               Akses Tracker <ArrowRight size={16} />
             </Link>
           </div>
@@ -104,8 +127,13 @@ export default function HomePage() {
               <Shield className="text-purple-600" size={28} />
             </div>
             <h3 className="text-2xl font-bold text-gray-900 mb-3">AI Review Audit</h3>
-            <p className="text-gray-600 mb-6">Senior Auditor AI menganalisis ulasan negatif dan memberikan rekomendasi actionable untuk improvement.</p>
-            <Link href="/audit" className="text-purple-600 font-semibold hover:text-purple-700 flex items-center gap-2">
+            <p className="text-gray-600 mb-6">
+              Senior Auditor AI menganalisis ulasan negatif dan memberikan rekomendasi actionable untuk improvement.
+            </p>
+            <Link 
+              href="/audit" 
+              className="text-purple-600 font-semibold hover:text-purple-700 flex items-center gap-2"
+            >
               Jalankan Audit <ArrowRight size={16} />
             </Link>
           </div>
@@ -115,8 +143,13 @@ export default function HomePage() {
               <Zap className="text-emerald-600" size={28} />
             </div>
             <h3 className="text-2xl font-bold text-gray-900 mb-3">Automation</h3>
-            <p className="text-gray-600 mb-6">Semua proses berjalan otomatis. Dapatkan insights dan rekomendasi tanpa perlu monitoring manual.</p>
-            <Link href="/audit" className="text-emerald-600 font-semibold hover:text-emerald-700 flex items-center gap-2">
+            <p className="text-gray-600 mb-6">
+              Semua proses berjalan otomatis. Dapatkan insights dan rekomendasi tanpa perlu monitoring manual.
+            </p>
+            <Link 
+              href="/audit" 
+              className="text-emerald-600 font-semibold hover:text-emerald-700 flex items-center gap-2"
+            >
               Explore <ArrowRight size={16} />
             </Link>
           </div>
@@ -126,14 +159,7 @@ export default function HomePage() {
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-12 text-white mb-20">
           <h2 className="text-4xl font-bold mb-12">Mengapa Viva Suite?</h2>
           <div className="grid md:grid-cols-2 gap-8">
-            {[
-              'Monitor semua cabang dari satu dashboard',
-              'AI-powered insights untuk decision making',
-              'Real-time Google Maps ranking tracking',
-              'Automated review analysis & recommendations',
-              'Detailed audit reports untuk setiap branch',
-              'Easy integration dengan workflow existing'
-            ].map((benefit, idx) => (
+            {benefits.map((benefit, idx) => (
               <div key={idx} className="flex items-start gap-4">
                 <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center mt-1 flex-shrink-0">
                   <CheckCircle size={20} />
@@ -146,9 +172,16 @@ export default function HomePage() {
 
         {/* CTA Section */}
         <div className="text-center">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">Siap meningkatkan reputasi digital Anda?</h2>
-          <p className="text-xl text-gray-600 mb-8">Mulai sekarang dan rasakan perbedaannya dalam 24 jam.</p>
-          <Link href="/seo" className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white px-10 py-4 rounded-lg font-bold text-lg hover:shadow-xl transition">
+          <h2 className="text-4xl font-bold text-gray-900 mb-4">
+            Siap meningkatkan reputasi digital Anda?
+          </h2>
+          <p className="text-xl text-gray-600 mb-8">
+            Mulai sekarang dan rasakan perbedaannya dalam 24 jam.
+          </p>
+          <Link 
+            href="/seo" 
+            className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white px-10 py-4 rounded-lg font-bold text-lg hover:shadow-xl transition"
+          >
             Mulai Gratis Sekarang
           </Link>
         </div>
@@ -165,22 +198,38 @@ export default function HomePage() {
             <div>
               <h4 className="text-white font-semibold mb-4">Product</h4>
               <ul className="space-y-2 text-sm">
-                <li><Link href="/seo" className="hover:text-white transition">SEO Tracker</Link></li>
-                <li><Link href="/audit" className="hover:text-white transition">AI Audit</Link></li>
+                <li>
+                  <Link href="/seo" className="hover:text-white transition">
+                    SEO Tracker
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/audit" className="hover:text-white transition">
+                    AI Audit
+                  </Link>
+                </li>
               </ul>
             </div>
             <div>
               <h4 className="text-white font-semibold mb-4">Company</h4>
               <ul className="space-y-2 text-sm">
-                <li><a href="#" className="hover:text-white transition">About</a></li>
-                <li><a href="#" className="hover:text-white transition">Contact</a></li>
+                <li>
+                  <a href="#" className="hover:text-white transition">About</a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition">Contact</a>
+                </li>
               </ul>
             </div>
             <div>
               <h4 className="text-white font-semibold mb-4">Legal</h4>
               <ul className="space-y-2 text-sm">
-                <li><a href="#" className="hover:text-white transition">Privacy</a></li>
-                <li><a href="#" className="hover:text-white transition">Terms</a></li>
+                <li>
+                  <a href="#" className="hover:text-white transition">Privacy</a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition">Terms</a>
+                </li>
               </ul>
             </div>
           </div>
@@ -190,5 +239,5 @@ export default function HomePage() {
         </div>
       </footer>
     </div>
-  )
+  );
 }
