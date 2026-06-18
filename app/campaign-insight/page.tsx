@@ -9,14 +9,14 @@ import {
   Lightbulb,
   Copy,
   Sparkles,
-  ChevronRight,
+  Plus,
   Save,
   Target,
   FileText,
   Trash2,
-  Plus,
   X,
   CheckCircle2,
+  Zap,
 } from 'lucide-react';
 
 // ===== TYPES =====
@@ -45,6 +45,13 @@ interface CampaignInsightData {
   events: CalendarEvent[];
 }
 
+interface ManualCampaign {
+  id: string;
+  name: string;
+  date: string;
+  description: string;
+}
+
 interface CampaignPlan {
   id: number;
   name: string;
@@ -69,6 +76,22 @@ const TIME_RANGE_OPTIONS = [
   { value: 'today 3-m', label: '90 hari terakhir' },
   { value: 'today 12-m', label: '12 bulan terakhir' },
   { value: 'today 5-y', label: '5 tahun terakhir' },
+];
+
+// ===== KNOWN MANUAL CAMPAIGNS =====
+const KNOWN_CAMPAIGNS: ManualCampaign[] = [
+  { id: 'harbolnas', name: 'Harbolnas (Hari Belanja Online Nasional)', date: '2026-12-12', description: 'Momen belanja online terbesar di Indonesia' },
+  { id: '1111', name: '11.11 Sale', date: '2026-11-11', description: 'Single Day shopping festival' },
+  { id: '99', name: '9.9 Super Shopping Day', date: '2026-09-09', description: 'Super shopping day campaign' },
+  { id: 'back-to-school', name: 'Back to School', date: '2026-07-01', description: 'Campaign tahun ajaran baru' },
+  { id: 'end-year', name: 'Year End Sale', date: '2026-12-25', description: 'Promo akhir tahun & Natal' },
+  { id: 'new-year', name: 'New Year Health Goals', date: '2027-01-01', description: 'Resolusi sehat tahun baru' },
+  { id: 'ramadhan', name: 'Ramadhan Sehat', date: '2026-02-17', description: 'Campaign spesial bulan puasa' },
+  { id: 'idul-fitri', name: 'Idul Fitri Campaign', date: '2026-03-20', description: 'Healthy Eid celebration' },
+  { id: 'kemerdekaan', name: 'Kemerdekaan Sehat', date: '2026-08-17', description: 'HUT RI - Indonesia Sehat' },
+  { id: 'valentine', name: 'Valentine Health', date: '2026-02-14', description: 'Healthy love campaign' },
+  { id: 'sumpah-pemuda', name: 'Youth Health Day', date: '2026-10-28', description: 'Kesehatan generasi muda' },
+  { id: 'hari-ibu', name: 'Hari Ibu Sehat', date: '2026-12-22', description: 'Apresiasi ibu dengan kesehatan' },
 ];
 
 // ===== HELPER FUNCTIONS =====
@@ -105,58 +128,6 @@ function getEventTypeColor(type: string) {
   return { bg: 'bg-purple-100', text: 'text-purple-700', label: 'PERINGATAN' };
 }
 
-function generateCampaignIdeas(event?: CalendarEvent, trend?: TrendItem, plan?: { name: string; description: string; goal: string }) {
-  const eventName = event?.name || '';
-  const trendName = trend?.query || 'tren terkini';
-  const campaignName = plan?.name || 'Campaign Sehat';
-  const campaignGoal = plan?.goal || 'meningkatkan brand awareness';
-  const campaignDesc = plan?.description || '';
-
-  const ideas = [];
-
-  if (eventName) {
-    ideas.push({
-      title: `📢 "${eventName} - ${campaignName}"`,
-      desc: `Gabungkan momentum ${eventName} dengan campaign "${campaignName}". ${campaignDesc || `Fokus pada edukasi ${trendName} yang relevan dengan ${eventName.toLowerCase()}.`}`,
-      cta: `Posting Instagram & TikTok: "Rayakan ${eventName} dengan ${campaignName}"`,
-      platform: '📱 Instagram + TikTok',
-    });
-  }
-
-  ideas.push({
-    title: `🎯 Tren "${trendName}" x ${campaignName}`,
-    desc: `Manfaatkan tren "${trendName}" yang sedang naik untuk campaign "${campaignName}". Buat konten yang menghubungkan ${trendName} dengan goal: ${campaignGoal}.`,
-    cta: `Buat konten interaktif seputar ${trendName} dengan hashtag campaign`,
-    platform: '📱 Instagram + TikTok',
-  });
-
-  ideas.push({
-    title: `💡 Brand Awareness ${campaignName}`,
-    desc: `Strategi konten untuk mencapai "${campaignGoal}". Gunakan storytelling dan testimoni untuk membangun kepercayaan audiens. Integrasikan keyword "${trendName}" dalam konten.`,
-    cta: `Landing page khusus campaign + WhatsApp blast`,
-    platform: '🌐 Website + WhatsApp',
-  });
-
-  ideas.push({
-    title: `🎓 Edukasi Interaktif ${campaignName}`,
-    desc: `Selenggarakan webinar atau live streaming edukasi seputar ${trendName} dalam rangka campaign "${campaignName}". Hadirkan ahli untuk meningkatkan kredibilitas.`,
-    cta: `Live TikTok/Instagram dengan sesi tanya jawab interaktif`,
-    platform: '🎵 Live Streaming',
-  });
-
-  const insight = eventName
-    ? `Momentum ${eventName} bisa dikombinasikan dengan tren "${trendName}" yang sedang naik untuk campaign "${campaignName}". Fokus pada goal "${campaignGoal}" dengan pendekatan edukatif dan emotional connection.`
-    : `Tren "${trendName}" dapat menjadi kunci sukses campaign "${campaignName}". Dengan goal "${campaignGoal}", fokus pada konten yang engaging dan relevan.`;
-
-  return {
-    eventName: eventName || trendName,
-    trendName,
-    campaignName,
-    ideas,
-    insight,
-  };
-}
-
 // ===== MONTHS =====
 const MONTHS = [
   'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
@@ -168,13 +139,20 @@ export default function CampaignInsightPage() {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<CampaignInsightData | null>(null);
 
-  // Keyword search state (Google Trends style)
+  // Keyword search state
   const [searchKeyword, setSearchKeyword] = useState('');
   const [timeRange, setTimeRange] = useState('now 7-d');
 
   // Selection state
   const [selectedKeyword, setSelectedKeyword] = useState<TrendItem | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+
+  // Manual Campaign state
+  const [selectedManualCampaign, setSelectedManualCampaign] = useState<ManualCampaign | null>(null);
+  const [customCampaign, setCustomCampaign] = useState('');
+  const [customCampaignDate, setCustomCampaignDate] = useState('');
+  const [customCampaignDesc, setCustomCampaignDesc] = useState('');
+  const [showCustomCampaign, setShowCustomCampaign] = useState(false);
 
   // Campaign Planner state
   const [campaignName, setCampaignName] = useState('');
@@ -183,8 +161,9 @@ export default function CampaignInsightPage() {
   const [campaignMonth, setCampaignMonth] = useState(new Date().getMonth() + 1);
   const [campaignYear, setCampaignYear] = useState(new Date().getFullYear());
 
-  // Generated ideas
-  const [generatedIdeas, setGeneratedIdeas] = useState<any>(null);
+  // AI Blueprint state
+  const [blueprint, setBlueprint] = useState<string>('');
+  const [blueprintMeta, setBlueprintMeta] = useState<{ campaignName: string; trendName: string; eventName: string | null } | null>(null);
   const [generating, setGenerating] = useState(false);
 
   // Saved plans
@@ -194,6 +173,11 @@ export default function CampaignInsightPage() {
 
   // Notification
   const [notification, setNotification] = useState('');
+
+  const showNotification = (msg: string) => {
+    setNotification(msg);
+    setTimeout(() => setNotification(''), 3000);
+  };
 
   // ===== FETCH TRENDS & EVENTS =====
   const fetchData = useCallback(async (keyword?: string, tr?: string) => {
@@ -228,7 +212,7 @@ export default function CampaignInsightPage() {
     fetchSavedPlans();
   }, [fetchData, fetchSavedPlans]);
 
-  // ===== HANDLE KEYWORD SEARCH (Google Trends style) =====
+  // ===== HANDLE KEYWORD SEARCH =====
   const handleKeywordSearch = () => {
     if (!searchKeyword.trim()) {
       showNotification('Masukkan keyword terlebih dahulu!');
@@ -237,48 +221,88 @@ export default function CampaignInsightPage() {
     fetchData(searchKeyword.trim(), timeRange);
   };
 
-  // ===== ANALYZE CAMPAIGN =====
-  const handleAnalyze = () => {
-    if (!selectedKeyword && !selectedEvent) {
-      showNotification('Pilih minimal keyword trend atau event kalender!');
+  // ===== ANALYZE CAMPAIGN WITH AI (DeepSeek) =====
+  const handleAnalyze = async () => {
+    if (!selectedKeyword && !selectedEvent && !selectedManualCampaign) {
+      showNotification('Pilih minimal keyword trend, event kalender, atau campaign!');
       return;
     }
 
+    // Extract trend context from selected keyword
+    const trendContext = selectedKeyword && data?.trends
+      ? `Related trends: ${data.trends.slice(0, 5).map(t => t.query).join(', ')}`
+      : '';
+
     setGenerating(true);
-    setTimeout(() => {
-      const ideas = generateCampaignIdeas(
-        selectedEvent || undefined,
-        selectedKeyword || undefined,
-        { name: campaignName, description: campaignDesc, goal: campaignGoal }
-      );
-      setGeneratedIdeas(ideas);
+    setBlueprint('');
+    setBlueprintMeta(null);
+
+    try {
+      const effectiveEventName = selectedEvent?.name || selectedManualCampaign?.name || '';
+      const effectiveEventDate = selectedEvent?.date || selectedManualCampaign?.date || '';
+
+      const res = await fetch('/api/campaign-insight/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          campaignName: campaignName || `Campaign ${selectedKeyword?.query || effectiveEventName || 'Kesehatan'}`,
+          campaignGoal: campaignGoal || 'Meningkatkan brand awareness dan engagement',
+          campaignDesc: campaignDesc,
+          campaignMonth,
+          campaignYear,
+          selectedKeyword: selectedKeyword?.query || null,
+          selectedEventName: effectiveEventName || null,
+          selectedEventDate: effectiveEventDate || null,
+          trendContext,
+        }),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || 'Gagal generate insight');
+      }
+
+      setBlueprint(json.blueprint);
+      setBlueprintMeta({
+        campaignName: json.campaignName,
+        trendName: json.trendName,
+        eventName: json.eventName,
+      });
+      showNotification('Insight campaign berhasil digenerate! 🚀');
+    } catch (e: any) {
+      showNotification(`Gagal generate insight: ${e.message}`);
+      setBlueprint('');
+    } finally {
       setGenerating(false);
-      showNotification('Insight campaign berhasil digenerate!');
-    }, 800);
+    }
   };
 
   // ===== SAVE CAMPAIGN PLAN =====
   const handleSavePlan = async () => {
-    if (!generatedIdeas) {
+    if (!blueprint) {
       showNotification('Generate insight dulu sebelum menyimpan!');
       return;
     }
 
     setSaving(true);
     try {
+      const effectiveEventName = selectedEvent?.name || selectedManualCampaign?.name || '';
+      const effectiveEventDate = selectedEvent?.date || selectedManualCampaign?.date || '';
+
       const res = await fetch('/api/campaign-planner', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: campaignName || `Campaign ${selectedKeyword?.query || selectedEvent?.name || 'Baru'}`,
+          name: campaignName || `Campaign ${selectedKeyword?.query || effectiveEventName || 'Baru'}`,
           description: campaignDesc,
           goal: campaignGoal,
           campaign_month: campaignMonth,
           campaign_year: campaignYear,
           selected_keyword: selectedKeyword?.query || null,
-          selected_event_name: selectedEvent?.name || null,
-          selected_event_date: selectedEvent?.date || null,
-          generated_ideas: generatedIdeas,
+          selected_event_name: effectiveEventName || null,
+          selected_event_date: effectiveEventDate || null,
+          generated_ideas: { blueprint, blueprintMeta },
         }),
       });
       const json = await res.json();
@@ -306,21 +330,29 @@ export default function CampaignInsightPage() {
 
   // ===== COPY BRIEF =====
   const handleCopyBrief = () => {
-    if (!generatedIdeas) return;
-    const brief = generatedIdeas.ideas
-      .map(
-        (idea: any) =>
-          `**${idea.title}**\n${idea.desc}\nCTA: ${idea.cta}\nPlatform: ${idea.platform}`
-      )
-      .join('\n\n');
-    navigator.clipboard.writeText(brief);
-    showNotification('Brief campaign disalin ke clipboard!');
+    if (!blueprint) return;
+    navigator.clipboard.writeText(blueprint);
+    showNotification('Blueprint campaign disalin ke clipboard!');
   };
 
-  // ===== NOTIFICATION =====
-  const showNotification = (msg: string) => {
-    setNotification(msg);
-    setTimeout(() => setNotification(''), 3000);
+  // ===== ADD CUSTOM CAMPAIGN =====
+  const handleAddCustomCampaign = () => {
+    if (!customCampaign.trim()) {
+      showNotification('Masukkan nama campaign terlebih dahulu!');
+      return;
+    }
+    const newCampaign: ManualCampaign = {
+      id: `custom-${Date.now()}`,
+      name: customCampaign.trim(),
+      date: customCampaignDate || new Date().toISOString().split('T')[0],
+      description: customCampaignDesc || 'Campaign custom',
+    };
+    setSelectedManualCampaign(newCampaign);
+    setCustomCampaign('');
+    setCustomCampaignDate('');
+    setCustomCampaignDesc('');
+    setShowCustomCampaign(false);
+    showNotification(`Campaign "${newCampaign.name}" ditambahkan!`);
   };
 
   const trends = data?.trends || [];
@@ -328,6 +360,9 @@ export default function CampaignInsightPage() {
 
   const years = [];
   for (let y = 2024; y <= 2030; y++) years.push(y);
+
+  // Combine selected info for display
+  const hasSelection = selectedKeyword || selectedEvent || selectedManualCampaign;
 
   return (
     <div className="space-y-6">
@@ -338,7 +373,7 @@ export default function CampaignInsightPage() {
         <h2 className="text-xl font-bold text-blue-600">Radar tren Google Trends & kalender event untuk ide campaign</h2>
       </div>
 
-      {/* ===== TRENDING GOOGLE INDONESIA - FULL WIDTH (Google Trends style) ===== */}
+      {/* ===== TRENDING GOOGLE INDONESIA - FULL WIDTH ===== */}
       <div className="bg-white rounded-3xl shadow-sm p-6 md:p-8 border border-slate-100">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
@@ -350,7 +385,7 @@ export default function CampaignInsightPage() {
           </div>
         </div>
 
-        {/* Search Row - Google Trends style: keyword input + time range dropdown + search button */}
+        {/* Search Row */}
         <div className="flex flex-col md:flex-row gap-3 mb-6">
           <div className="relative flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
@@ -360,14 +395,14 @@ export default function CampaignInsightPage() {
               value={searchKeyword}
               onChange={(e) => setSearchKeyword(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleKeywordSearch()}
-              className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-400 text-slate-900 text-sm"
+              className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-400 text-slate-900 text-sm"
             />
           </div>
           <div className="flex gap-3">
             <select
               value={timeRange}
               onChange={(e) => setTimeRange(e.target.value)}
-              className="px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-400 text-slate-700 text-sm min-w-[180px]"
+              className="px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-400 text-slate-700 text-sm min-w-[180px]"
             >
               {TIME_RANGE_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -378,7 +413,7 @@ export default function CampaignInsightPage() {
             <button
               onClick={handleKeywordSearch}
               disabled={loading}
-              className="px-6 py-3 bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-2xl font-semibold hover:shadow-lg transition text-sm flex items-center gap-2 disabled:opacity-50 whitespace-nowrap"
+              className="px-6 py-3 bg-emerald-400 hover:bg-emerald-500 text-white rounded-2xl font-semibold shadow-sm hover:shadow-md transition text-sm flex items-center gap-2 disabled:opacity-50 whitespace-nowrap"
             >
               {loading ? (
                 <>
@@ -399,7 +434,7 @@ export default function CampaignInsightPage() {
         {searchKeyword && (
           <div className="mb-4 flex items-center gap-2">
             <span className="text-sm text-slate-500">Hasil untuk:</span>
-            <span className="text-sm font-semibold text-red-600 bg-red-50 px-3 py-1 rounded-full">
+            <span className="text-sm font-semibold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
               &ldquo;{searchKeyword}&rdquo;
             </span>
             <span className="text-xs text-slate-400">({trends.length} topik terkait)</span>
@@ -435,13 +470,13 @@ export default function CampaignInsightPage() {
                   }
                   className={`trend-item flex items-center justify-between p-4 rounded-xl cursor-pointer transition border hover:shadow-md ${
                     isSelected
-                      ? 'bg-cyan-50 border-cyan-400 ring-2 ring-cyan-200 shadow-md'
+                      ? 'bg-emerald-50 border-emerald-400 ring-2 ring-emerald-200 shadow-md'
                       : 'bg-white border-slate-200 hover:border-slate-300'
                   }`}
                   style={{ animationDelay: `${index * 0.05}s` }}
                 >
                   <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <span className={`text-base font-extrabold ${heat.rank} w-10 shrink-0`}>
+                    <span className={`text-base font-extrabold ${isSelected ? 'text-emerald-500' : heat.rank} w-10 shrink-0`}>
                       #{index + 1}
                     </span>
                     <div className="min-w-0">
@@ -465,7 +500,7 @@ export default function CampaignInsightPage() {
                       <span className="text-sm font-semibold text-slate-600">{item.formattedValue}</span>
                     )}
                     {isSelected && (
-                      <CheckCircle2 size={20} className="text-cyan-500 shrink-0" />
+                      <CheckCircle2 size={20} className="text-emerald-500 shrink-0" />
                     )}
                   </div>
                 </div>
@@ -475,7 +510,7 @@ export default function CampaignInsightPage() {
         )}
       </div>
 
-      {/* ===== KALENDER EVENT - FULL WIDTH ===== */}
+      {/* ===== KALENDER EVENT & CAMPAIGN - FULL WIDTH ===== */}
       <div className="bg-white rounded-3xl shadow-sm p-6 md:p-8 border border-slate-100">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
@@ -483,322 +518,435 @@ export default function CampaignInsightPage() {
           </div>
           <div>
             <h2 className="text-xl font-bold text-slate-800">Kalender Event & Campaign</h2>
-            <p className="text-sm text-slate-500">{events.length} event mendatang</p>
+            <p className="text-sm text-slate-500">{events.length} event mendatang & campaign</p>
           </div>
         </div>
 
-        {events.length === 0 ? (
-          <div className="py-12 text-center">
-            <CalendarDays size={64} className="text-slate-200 mx-auto mb-4" />
-            <p className="text-lg font-semibold text-slate-400">Tidak ada event</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {events.map((event, index) => {
-              const typeColor = getEventTypeColor(event.type);
-              const isSelected = selectedEvent?.name === event.name;
-              return (
-                <div
-                  key={index}
-                  onClick={() =>
-                    setSelectedEvent(isSelected ? null : event)
-                  }
-                  className={`p-4 rounded-xl cursor-pointer transition border hover:shadow-md ${
-                    isSelected
-                      ? 'bg-purple-50 border-purple-400 ring-2 ring-purple-200 shadow-md'
-                      : 'bg-white border-slate-200 hover:border-slate-300'
-                  }`}
-                >
-                  <div className="flex justify-between items-start gap-3">
-                    <div className="flex-1 min-w-0">
-                      <span
-                        className={`text-[11px] px-2 py-0.5 rounded-full font-semibold ${typeColor.bg} ${typeColor.text}`}
-                      >
-                        {typeColor.label}
-                      </span>
-                      <h3 className="font-semibold text-slate-800 mt-2 text-sm">
-                        {event.name}
-                      </h3>
-                      {event.description && (
-                        <p className="text-xs text-slate-500 mt-1 line-clamp-2">
-                          {event.description}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-sm font-bold text-purple-500">
-                        {formatDate(event.date)}
-                      </span>
-                      {isSelected && (
-                        <CheckCircle2 size={18} className="text-purple-500" />
-                      )}
-                    </div>
+        {/* Events Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
+          {events.map((event, index) => {
+            const typeColor = getEventTypeColor(event.type);
+            const isSelected = selectedEvent?.name === event.name;
+            return (
+              <div
+                key={`event-${index}`}
+                onClick={() =>
+                  setSelectedEvent(isSelected ? null : event)
+                }
+                className={`p-4 rounded-xl cursor-pointer transition border hover:shadow-md ${
+                  isSelected
+                    ? 'bg-purple-50 border-purple-400 ring-2 ring-purple-200 shadow-md'
+                    : 'bg-white border-slate-200 hover:border-slate-300'
+                }`}
+              >
+                <div className="flex justify-between items-start gap-3">
+                  <div className="flex-1 min-w-0">
+                    <span
+                      className={`text-[11px] px-2 py-0.5 rounded-full font-semibold ${typeColor.bg} ${typeColor.text}`}
+                    >
+                      {typeColor.label}
+                    </span>
+                    <h3 className="font-semibold text-slate-800 mt-2 text-sm">
+                      {event.name}
+                    </h3>
+                    {event.description && (
+                      <p className="text-xs text-slate-500 mt-1 line-clamp-2">
+                        {event.description}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-sm font-bold text-purple-500">
+                      {formatDate(event.date)}
+                    </span>
+                    {isSelected && (
+                      <CheckCircle2 size={18} className="text-purple-500" />
+                    )}
                   </div>
                 </div>
-              );
-            })}
+              </div>
+            );
+          })}
+
+          {/* Manual Campaigns (pre-defined + custom) */}
+          {KNOWN_CAMPAIGNS.map((campaign) => {
+            const isSelected = selectedManualCampaign?.id === campaign.id;
+            return (
+              <div
+                key={`manual-${campaign.id}`}
+                onClick={() =>
+                  setSelectedManualCampaign(isSelected ? null : campaign)
+                }
+                className={`p-4 rounded-xl cursor-pointer transition border hover:shadow-md ${
+                  isSelected
+                    ? 'bg-emerald-50 border-emerald-400 ring-2 ring-emerald-200 shadow-md'
+                    : 'bg-white border-slate-200 hover:border-slate-300'
+                }`}
+              >
+                <div className="flex justify-between items-start gap-3">
+                  <div className="flex-1 min-w-0">
+                    <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold bg-emerald-100 text-emerald-700">
+                      CAMPAIGN
+                    </span>
+                    <h3 className="font-semibold text-slate-800 mt-2 text-sm">
+                      {campaign.name}
+                    </h3>
+                    {campaign.description && (
+                      <p className="text-xs text-slate-500 mt-1 line-clamp-2">
+                        {campaign.description}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-sm font-bold text-emerald-500">
+                      {formatDate(campaign.date)}
+                    </span>
+                    {isSelected && (
+                      <CheckCircle2 size={18} className="text-emerald-500" />
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Add Custom Campaign Section */}
+        <div className="border-t border-slate-200 pt-4">
+          {showCustomCampaign ? (
+            <div className="bg-slate-50 rounded-2xl p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold text-slate-700">Tambah Campaign Manual</span>
+                <button
+                  onClick={() => setShowCustomCampaign(false)}
+                  className="text-slate-400 hover:text-slate-600"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <input
+                  type="text"
+                  placeholder="Nama campaign (contoh: Harbolnas)"
+                  value={customCampaign}
+                  onChange={(e) => setCustomCampaign(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-400 focus:outline-none"
+                />
+                <input
+                  type="date"
+                  value={customCampaignDate}
+                  onChange={(e) => setCustomCampaignDate(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-400 focus:outline-none"
+                />
+                <input
+                  type="text"
+                  placeholder="Deskripsi singkat"
+                  value={customCampaignDesc}
+                  onChange={(e) => setCustomCampaignDesc(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-400 focus:outline-none"
+                />
+              </div>
+              <button
+                onClick={handleAddCustomCampaign}
+                className="px-5 py-2.5 bg-emerald-400 hover:bg-emerald-500 text-white rounded-xl font-semibold text-sm flex items-center gap-2 transition"
+              >
+                <Plus size={16} />
+                Tambahkan Campaign
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowCustomCampaign(true)}
+              className="flex items-center gap-2 text-sm font-semibold text-emerald-600 hover:text-emerald-700 border-2 border-dashed border-emerald-300 hover:border-emerald-400 rounded-xl px-4 py-3 transition w-full justify-center"
+            >
+              <Plus size={18} />
+              Add Campaign Manual (Harbolnas, 11.11, dll)
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* ===== CAMPAIGN PLANNER (TOP) ===== */}
+      <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+        <div
+          className="p-6 md:p-8 cursor-pointer"
+          onClick={() => setShowPlanner(!showPlanner)}
+        >
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
+              <Target size={22} className="text-emerald-500" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-xl font-bold text-slate-800">Campaign Planner</h2>
+              <p className="text-sm text-slate-500">Rencanakan campaign berdasarkan tren, event & campaign terpilih</p>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              {selectedKeyword && (
+                <span className="text-xs bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full font-medium">
+                  📈 {selectedKeyword.query}
+                </span>
+              )}
+              {selectedEvent && (
+                <span className="text-xs bg-purple-100 text-purple-700 px-3 py-1 rounded-full font-medium">
+                  📅 {formatDate(selectedEvent.date)}
+                </span>
+              )}
+              {selectedManualCampaign && (
+                <span className="text-xs bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full font-medium">
+                  🎯 {selectedManualCampaign.name}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {showPlanner && (
+          <div className="px-6 md:px-8 pb-8 space-y-5">
+            {/* Campaign Name & Goal */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <label className="block text-sm font-semibold text-slate-600 mb-2">
+                  Nama Campaign
+                </label>
+                <input
+                  type="text"
+                  value={campaignName}
+                  onChange={(e) => setCampaignName(e.target.value)}
+                  placeholder="Contoh: Promo Sehat Akhir Tahun"
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-300 focus:border-emerald-400 outline-none bg-slate-50"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-600 mb-2">
+                  Goal Campaign
+                </label>
+                <input
+                  type="text"
+                  value={campaignGoal}
+                  onChange={(e) => setCampaignGoal(e.target.value)}
+                  placeholder="Contoh: Meningkatkan penjualan 30%"
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-300 focus:border-emerald-400 outline-none bg-slate-50"
+                />
+              </div>
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className="block text-sm font-semibold text-slate-600 mb-2">
+                Deskripsi Campaign
+              </label>
+              <textarea
+                value={campaignDesc}
+                onChange={(e) => setCampaignDesc(e.target.value)}
+                placeholder="Deskripsikan campaign yang ingin dijalankan..."
+                rows={3}
+                className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-300 focus:border-emerald-400 outline-none bg-slate-50 resize-none"
+              />
+            </div>
+
+            {/* Month & Year */}
+            <div className="grid grid-cols-2 gap-5">
+              <div>
+                <label className="block text-sm font-semibold text-slate-600 mb-2">
+                  Bulan Campaign
+                </label>
+                <select
+                  value={campaignMonth}
+                  onChange={(e) => setCampaignMonth(parseInt(e.target.value))}
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-300 focus:border-emerald-400 outline-none bg-slate-50"
+                >
+                  {MONTHS.map((m, i) => (
+                    <option key={i} value={i + 1}>
+                      {m}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-600 mb-2">
+                  Tahun
+                </label>
+                <select
+                  value={campaignYear}
+                  onChange={(e) => setCampaignYear(parseInt(e.target.value))}
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-300 focus:border-emerald-400 outline-none bg-slate-50"
+                >
+                  {years.map((y) => (
+                    <option key={y} value={y}>
+                      {y}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Selected info */}
+            <div className="bg-slate-50 rounded-xl p-4 space-y-2">
+              <p className="text-sm font-semibold text-slate-600">Ringkasan Pilihan:</p>
+              {selectedKeyword ? (
+                <p className="text-sm text-slate-500">
+                  📈 Keyword Trend:{' '}
+                  <span className="font-medium text-emerald-700">{selectedKeyword.query}</span>
+                </p>
+              ) : (
+                <p className="text-sm text-slate-400 italic">⚠️ Belum memilih keyword trend</p>
+              )}
+              {selectedEvent ? (
+                <p className="text-sm text-slate-500">
+                  📅 Event:{' '}
+                  <span className="font-medium text-purple-700">
+                    {selectedEvent.name} ({formatDate(selectedEvent.date)})
+                  </span>
+                </p>
+              ) : (
+                <p className="text-sm text-slate-400 italic">⚠️ Belum memilih event kalender</p>
+              )}
+              {selectedManualCampaign ? (
+                <p className="text-sm text-slate-500">
+                  🎯 Campaign:{' '}
+                  <span className="font-medium text-emerald-700">
+                    {selectedManualCampaign.name} ({formatDate(selectedManualCampaign.date)})
+                  </span>
+                </p>
+              ) : (
+                <p className="text-sm text-slate-400 italic">💡 Bisa tambah campaign manual di atas</p>
+              )}
+            </div>
+
+            {/* Analyze Button */}
+            <button
+              onClick={handleAnalyze}
+              disabled={generating || !hasSelection}
+              className="w-full bg-emerald-400 hover:bg-emerald-500 text-white py-3.5 rounded-xl font-semibold shadow-sm hover:shadow-md transition text-base flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {generating ? (
+                <>
+                  <RefreshCw size={20} className="animate-spin" />
+                  AI Generating Blueprint...
+                </>
+              ) : (
+                <>
+                  <Sparkles size={20} />
+                  Analisis Insight Campaign (AI)
+                </>
+              )}
+            </button>
           </div>
         )}
       </div>
 
-      {/* ===== CAMPAIGN PLANNER + INSIGHT - FULL WIDTH ===== */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Campaign Planner Form */}
-        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-          <div
-            className="p-6 md:p-8 cursor-pointer"
-            onClick={() => setShowPlanner(!showPlanner)}
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
-                <Target size={22} className="text-emerald-500" />
-              </div>
-              <div className="flex-1">
-                <h2 className="text-xl font-bold text-slate-800">Campaign Planner</h2>
-                <p className="text-sm text-slate-500">Rencanakan campaign berdasarkan tren & event terpilih</p>
-              </div>
-              <div className="flex items-center gap-2">
-                {selectedKeyword && (
-                  <span className="text-xs bg-cyan-100 text-cyan-700 px-3 py-1 rounded-full font-medium">
-                    📈 {selectedKeyword.query}
-                  </span>
-                )}
-                {selectedEvent && (
-                  <span className="text-xs bg-purple-100 text-purple-700 px-3 py-1 rounded-full font-medium">
-                    📅 {formatDate(selectedEvent.date)}
-                  </span>
-                )}
-                <ChevronRight
-                  size={20}
-                  className={`text-slate-400 transition ${showPlanner ? 'rotate-90' : ''}`}
-                />
-              </div>
+      {/* ===== INSIGHT CAMPAIGN (BOTTOM) - Full Width AI Blueprint ===== */}
+      <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="p-6 md:p-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+              <Lightbulb size={22} className="text-amber-500" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-slate-800">Insight Campaign</h2>
+              <p className="text-sm text-slate-500">
+                {blueprint ? 'AI-Generated Campaign Blueprint' : 'Pilih keyword, event, atau campaign lalu klik Analisis'}
+              </p>
             </div>
           </div>
 
-          {showPlanner && (
-            <div className="px-6 md:px-8 pb-8 space-y-5">
-              {/* Campaign Name */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-sm font-semibold text-slate-600 mb-2">
-                    Nama Campaign
-                  </label>
-                  <input
-                    type="text"
-                    value={campaignName}
-                    onChange={(e) => setCampaignName(e.target.value)}
-                    placeholder="Contoh: Promo Sehat Akhir Tahun"
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-300 focus:border-emerald-400 outline-none bg-slate-50"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-600 mb-2">
-                    Goal Campaign
-                  </label>
-                  <input
-                    type="text"
-                    value={campaignGoal}
-                    onChange={(e) => setCampaignGoal(e.target.value)}
-                    placeholder="Contoh: Meningkatkan penjualan 30%"
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-300 focus:border-emerald-400 outline-none bg-slate-50"
-                  />
-                </div>
-              </div>
-
-              {/* Description */}
-              <div>
-                <label className="block text-sm font-semibold text-slate-600 mb-2">
-                  Deskripsi Campaign
-                </label>
-                <textarea
-                  value={campaignDesc}
-                  onChange={(e) => setCampaignDesc(e.target.value)}
-                  placeholder="Deskripsikan campaign yang ingin dijalankan..."
-                  rows={3}
-                  className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-300 focus:border-emerald-400 outline-none bg-slate-50 resize-none"
-                />
-              </div>
-
-              {/* Month & Year */}
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-sm font-semibold text-slate-600 mb-2">
-                    Bulan Campaign
-                  </label>
-                  <select
-                    value={campaignMonth}
-                    onChange={(e) => setCampaignMonth(parseInt(e.target.value))}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-300 focus:border-emerald-400 outline-none bg-slate-50"
-                  >
-                    {MONTHS.map((m, i) => (
-                      <option key={i} value={i + 1}>
-                        {m}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-600 mb-2">
-                    Tahun
-                  </label>
-                  <select
-                    value={campaignYear}
-                    onChange={(e) => setCampaignYear(parseInt(e.target.value))}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-300 focus:border-emerald-400 outline-none bg-slate-50"
-                  >
-                    {years.map((y) => (
-                      <option key={y} value={y}>
-                        {y}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Selected info */}
-              <div className="bg-slate-50 rounded-xl p-4 space-y-2">
-                <p className="text-sm font-semibold text-slate-600">Ringkasan Pilihan:</p>
-                {selectedKeyword ? (
-                  <p className="text-sm text-slate-500">
-                    📈 Keyword Trend:{' '}
-                    <span className="font-medium text-cyan-700">{selectedKeyword.query}</span>
-                  </p>
-                ) : (
-                  <p className="text-sm text-slate-400 italic">⚠️ Belum memilih keyword trend</p>
-                )}
-                {selectedEvent ? (
-                  <p className="text-sm text-slate-500">
-                    📅 Event:{' '}
-                    <span className="font-medium text-purple-700">
-                      {selectedEvent.name} ({formatDate(selectedEvent.date)})
-                    </span>
-                  </p>
-                ) : (
-                  <p className="text-sm text-slate-400 italic">⚠️ Belum memilih event kalender</p>
-                )}
-              </div>
-
-              {/* Analyze Button */}
-              <button
-                onClick={handleAnalyze}
-                disabled={generating || (!selectedKeyword && !selectedEvent)}
-                className="w-full bg-gradient-to-r from-cyan-500 to-emerald-500 text-white py-3.5 rounded-xl font-semibold hover:shadow-lg transition text-base flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {generating ? (
-                  <>
-                    <RefreshCw size={20} className="animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles size={20} />
-                    Analisis Insight Campaign
-                  </>
-                )}
-              </button>
+          {/* Empty state */}
+          {!blueprint && !generating && (
+            <div className="py-12 flex flex-col items-center justify-center text-slate-400">
+              <Lightbulb size={64} className="text-slate-200 mb-4" />
+              <h3 className="text-lg font-semibold text-slate-500 mb-2">
+                Siap Generate Insight
+              </h3>
+              <p className="text-sm text-center max-w-md">
+                Pilih keyword trend, event kalender, dan/atau campaign manual &rarr; isi Campaign Planner &rarr; klik Analisis
+              </p>
             </div>
           )}
-        </div>
 
-        {/* Insight Campaign Results */}
-        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-          <div className="p-6 md:p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
-                <Lightbulb size={22} className="text-amber-500" />
+          {/* Generating state */}
+          {generating && (
+            <div className="py-12 flex flex-col items-center justify-center gap-3">
+              <Sparkles size={40} className="text-emerald-400 animate-pulse" />
+              <p className="text-base text-slate-500 font-medium">AI DeepSeek sedang menyusun blueprint campaign...</p>
+              <p className="text-sm text-slate-400">Ini mungkin memakan waktu 15-30 detik</p>
+            </div>
+          )}
+
+          {/* Blueprint result */}
+          {blueprint && !generating && (
+            <div className="space-y-5">
+              {/* Meta info */}
+              {blueprintMeta && (
+                <div className="flex flex-wrap gap-2 mb-2">
+                  <span className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">
+                    📋 {blueprintMeta.campaignName}
+                  </span>
+                  <span className="text-xs bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full font-medium">
+                    📈 {blueprintMeta.trendName}
+                  </span>
+                  {blueprintMeta.eventName && (
+                    <span className="text-xs bg-purple-100 text-purple-700 px-3 py-1 rounded-full font-medium">
+                      📅 {blueprintMeta.eventName}
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* AI Blueprint content (rendered markdown) */}
+              <div className="bg-gradient-to-r from-slate-50 to-emerald-50 border border-slate-200 rounded-2xl p-6 overflow-auto max-h-[800px]">
+                <div className="flex items-center gap-2 mb-4 pb-3 border-b border-emerald-200">
+                  <Sparkles size={18} className="text-emerald-600" />
+                  <span className="text-sm font-bold text-emerald-700 uppercase tracking-wide">
+                    AI DEEPSEEK BLUEPRINT & INSIGHT
+                  </span>
+                </div>
+                <div
+                  className="prose prose-sm max-w-none text-slate-700
+                    prose-h2:text-lg prose-h2:font-bold prose-h2:text-emerald-700 prose-h2:mt-6 prose-h2:mb-3 prose-h2:pb-2 prose-h2:border-b prose-h2:border-emerald-200
+                    prose-h3:text-base prose-h3:font-bold prose-h3:text-slate-800 prose-h3:mt-4 prose-h3:mb-2
+                    prose-p:text-sm prose-p:leading-relaxed prose-p:mb-3
+                    prose-strong:text-slate-800
+                    prose-ul:text-sm prose-ul:my-2
+                    prose-li:text-sm prose-li:my-1
+                    prose-table:text-sm prose-table:w-full
+                    prose-th:bg-emerald-50 prose-th:text-emerald-800 prose-th:font-semibold prose-th:px-3 prose-th:py-2 prose-th:text-left prose-th:text-xs
+                    prose-td:px-3 prose-td:py-2 prose-td:border-b prose-td:border-slate-100 prose-td:text-xs
+                    prose-hr:border-emerald-200
+                  "
+                  dangerouslySetInnerHTML={{
+                    __html: blueprint
+                      .replace(/^### /gm, '### ')
+                      .replace(/^## /gm, '## ')
+                      .replace(/^# /gm, '# ')
+                      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                      .replace(/^- /gm, '• ')
+                      .replace(/\n/g, '<br/>')
+                      .replace(/<br\/>\s*<br\/>/g, '</p><p>')
+                  }}
+                />
               </div>
-              <div>
-                <h2 className="text-xl font-bold text-slate-800">Insight Campaign</h2>
-                <p className="text-sm text-slate-500">
-                  {generatedIdeas ? 'AI-generated campaign ideas' : 'Pilih keyword & event, lalu klik Analisis'}
-                </p>
+
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={handleSavePlan}
+                  disabled={saving}
+                  className="flex-1 bg-emerald-400 hover:bg-emerald-500 text-white py-3 rounded-xl font-semibold shadow-sm hover:shadow-md transition text-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  <Save size={18} />
+                  {saving ? 'Menyimpan...' : 'Simpan ke Database'}
+                </button>
+                <button
+                  onClick={handleCopyBrief}
+                  className="flex-1 bg-slate-700 hover:bg-slate-800 text-white py-3 rounded-xl font-semibold shadow-sm hover:shadow-md transition text-sm flex items-center justify-center gap-2"
+                >
+                  <Copy size={18} />
+                  Copy Blueprint
+                </button>
               </div>
             </div>
-
-            {!generatedIdeas && !generating && (
-              <div className="py-12 flex flex-col items-center justify-center text-slate-400">
-                <Lightbulb size={64} className="text-slate-200 mb-4" />
-                <h3 className="text-lg font-semibold text-slate-500 mb-2">
-                  Pilih Keyword & Event
-                </h3>
-                <p className="text-sm text-center max-w-xs">
-                  Pilih keyword trend dan/atau event kalender, isi Campaign Planner, lalu klik Analisis
-                </p>
-              </div>
-            )}
-
-            {generating && (
-              <div className="py-12 flex flex-col items-center justify-center gap-3">
-                <Sparkles size={40} className="text-purple-400 animate-pulse" />
-                <p className="text-base text-slate-400">Generating campaign ideas...</p>
-              </div>
-            )}
-
-            {generatedIdeas && !generating && (
-              <div className="space-y-5">
-                {/* Header */}
-                <div>
-                  <h3 className="font-bold text-slate-800 text-lg">
-                    Campaign: {generatedIdeas.campaignName}
-                  </h3>
-                  <p className="text-sm text-slate-500">
-                    Keyword: {generatedIdeas.trendName}
-                    {generatedIdeas.eventName && ` | Event: ${generatedIdeas.eventName}`}
-                  </p>
-                </div>
-
-                {/* Ideas */}
-                <div className="space-y-3">
-                  {generatedIdeas.ideas.map((idea: any, i: number) => (
-                    <div
-                      key={i}
-                      className="border border-slate-200 rounded-xl p-4 hover:shadow-md transition bg-white"
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-semibold text-slate-800 text-sm">{idea.title}</h4>
-                        <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-full shrink-0 ml-2">
-                          {idea.platform}
-                        </span>
-                      </div>
-                      <p className="text-sm text-slate-600 mb-3">{idea.desc}</p>
-                      <p className="text-sm text-cyan-700 bg-cyan-50 p-3 rounded-lg">
-                        <strong>CTA:</strong> {idea.cta}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-
-                {/* AI Insight */}
-                <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Sparkles size={16} className="text-purple-600" />
-                    <span className="text-sm font-semibold text-purple-700">AI INSIGHT</span>
-                  </div>
-                  <p className="text-sm text-slate-700">{generatedIdeas.insight}</p>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex gap-3">
-                  <button
-                    onClick={handleSavePlan}
-                    disabled={saving}
-                    className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition text-sm flex items-center justify-center gap-2 disabled:opacity-50"
-                  >
-                    <Save size={18} />
-                    {saving ? 'Menyimpan...' : 'Simpan ke Database'}
-                  </button>
-                  <button
-                    onClick={handleCopyBrief}
-                    className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition text-sm flex items-center justify-center gap-2"
-                  >
-                    <Copy size={18} />
-                    Copy Brief
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+          )}
         </div>
       </div>
 
@@ -835,7 +983,7 @@ export default function CampaignInsightPage() {
                     </p>
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       {plan.selected_keyword && (
-                        <span className="text-xs bg-cyan-100 text-cyan-700 px-2 py-0.5 rounded-full font-medium">
+                        <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium">
                           📈 {plan.selected_keyword}
                         </span>
                       )}
@@ -862,28 +1010,11 @@ export default function CampaignInsightPage() {
 
       {/* Notification Toast */}
       {notification && (
-        <div className="fixed bottom-6 right-6 z-50 px-5 py-3 rounded-xl shadow-lg bg-green-500 text-white text-sm font-semibold animate-bounce">
+        <div className="fixed bottom-6 right-6 z-50 px-5 py-3 rounded-xl shadow-lg bg-emerald-500 text-white text-sm font-semibold animate-bounce">
           ✅ {notification}
         </div>
       )}
 
-      {/* CSS Animations */}
-      <style jsx>{`
-        @keyframes float-up {
-          0% {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          100% {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .trend-item {
-          animation: float-up 0.3s ease-out forwards;
-          opacity: 0;
-        }
-      `}</style>
     </div>
   );
 }
