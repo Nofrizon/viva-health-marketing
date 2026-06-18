@@ -35,8 +35,11 @@ function validateEnv(): { valid: boolean; errors: string[] } {
   if (!process.env.SERPAPI_KEY) {
     errors.push('SERPAPI_KEY is not defined');
   }
-  if (!process.env.GROQ_API_KEY) {
-    errors.push('GROQ_API_KEY is not defined');
+  if (!process.env.SUMOPOD_API_KEY) {
+    errors.push('SUMOPOD_API_KEY is not defined');
+  }
+  if (!process.env.SUMOPOD_BASE_URL) {
+    errors.push('SUMOPOD_BASE_URL is not defined');
   }
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
     errors.push('NEXT_PUBLIC_SUPABASE_URL is not defined');
@@ -113,21 +116,22 @@ function formatReviewsForAI(reviews: ReviewData[]): string {
     .join('\n\n');
 }
 
-// Helper: Call Groq API dengan error handling
-async function callGroqAPI(
+// Helper: Call SumoPod AI API dengan error handling
+async function callSumoPodAPI(
   unitName: string,
   reviewsText: string,
-  apiKey: string
+  apiKey: string,
+  baseUrl: string
 ): Promise<string> {
   try {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const response = await fetch(`${baseUrl}/chat/completions`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama-3.1-8b-instant',
+        model: 'deepseek-v4-flash',
         messages: [
           {
             role: 'system',
@@ -176,19 +180,19 @@ Estimasi improvement setelah implementasi: [%]`
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(`Groq API error (${response.status}): ${errorData.error?.message || 'Unknown error'}`);
+      throw new Error(`SumoPod AI error (${response.status}): ${errorData.error?.message || 'Unknown error'}`);
     }
 
     const data = await response.json();
     
     if (!data.choices || data.choices.length === 0) {
-      throw new Error('Invalid Groq response: no choices');
+      throw new Error('Invalid SumoPod AI response: no choices');
     }
 
     return data.choices[0].message.content.trim();
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-    throw new Error(`Groq API call failed: ${errorMsg}`);
+    throw new Error(`SumoPod AI API call failed: ${errorMsg}`);
   }
 }
 
@@ -265,7 +269,8 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
 
     const SERPAPI_KEY = process.env.SERPAPI_KEY!;
-    const GROQ_API_KEY = process.env.GROQ_API_KEY!;
+    const SUMOPOD_API_KEY = process.env.SUMOPOD_API_KEY!;
+    const SUMOPOD_BASE_URL = process.env.SUMOPOD_BASE_URL!;
 
     // Step 1: Search for pharmacy branch
     console.log(`[Audit] Searching for: ${query}`);
@@ -361,7 +366,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       
       try {
         const reviewsText = formatReviewsForAI(rawReviews);
-        aiReport = await callGroqAPI(place.title, reviewsText, GROQ_API_KEY);
+        aiReport = await callSumoPodAPI(place.title, reviewsText, SUMOPOD_API_KEY, SUMOPOD_BASE_URL);
         console.log('[Audit] AI analysis completed successfully');
       } catch (aiError) {
         const errorMsg = aiError instanceof Error ? aiError.message : 'Unknown error';

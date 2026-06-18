@@ -27,10 +27,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const apiKey = process.env.GROQ_API_KEY;
-    if (!apiKey) {
+    const apiKey = process.env.SUMOPOD_API_KEY;
+    const baseUrl = process.env.SUMOPOD_BASE_URL;
+    if (!apiKey || !baseUrl) {
       return NextResponse.json(
-        { success: false, message: 'Server configuration error: GROQ_API_KEY missing.' },
+        { success: false, message: 'Server configuration error: SUMOPOD_API_KEY or SUMOPOD_BASE_URL missing.' },
         { status: 500 }
       );
     }
@@ -57,14 +58,14 @@ export async function POST(request: NextRequest) {
     6. ${addPlaceholder ? 'Sisipkan teks [Sisipkan Internal/External Link di sini] pada kata yang relevan.' : 'Tidak perlu placeholder link.'}
     7. ${addFaq ? 'Tambahkan FAQ (Q&A) di akhir dengan tag <h2>FAQ</h2>.' : 'Tidak perlu FAQ.'}`;
 
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const response = await fetch(`${baseUrl}/chat/completions`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
+        model: 'deepseek-v4-flash',
         messages: [
           { role: 'system', content: 'Kamu adalah Copywriter SEO Senior yang handal menulis artikel berformat HTML murni.' },
           { role: 'user', content: prompt },
@@ -77,12 +78,12 @@ export async function POST(request: NextRequest) {
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(`Groq API error (${response.status}): ${errorData.error?.message || 'Unknown'}`);
+      throw new Error(`SumoPod AI error (${response.status}): ${errorData.error?.message || 'Unknown'}`);
     }
 
     const json = await response.json();
     if (!json.choices || json.choices.length === 0) {
-      throw new Error('API Groq gagal mengembalikan respons konten.');
+      throw new Error('API SumoPod AI gagal mengembalikan respons konten.');
     }
 
     let htmlContent = json.choices[0].message.content;
