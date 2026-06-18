@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS public.campaign_plans (
 ALTER TABLE public.campaign_plans ENABLE ROW LEVEL SECURITY;
 
 -- Allow public access for anonymous key
+DROP POLICY IF EXISTS "Enable all for anon" ON public.campaign_plans;
 CREATE POLICY "Enable all for anon" ON public.campaign_plans
   FOR ALL
   TO anon
