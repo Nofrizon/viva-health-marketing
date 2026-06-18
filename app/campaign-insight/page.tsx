@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   TrendingUp,
-  CalendarStar,
+  CalendarDays,
   Search,
   RefreshCw,
   Lightbulb,
@@ -319,7 +319,7 @@ export default function CampaignInsightPage() {
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
               <h2 className="font-bold text-slate-800 flex items-center gap-2">
-                <CalendarStar size={18} className="text-purple-500" />
+                <CalendarDays size={18} className="text-purple-500" />
                 Kalender Event & Campaign
               </h2>
               <span className="text-xs text-slate-400">{events.length} event mendatang</span>
@@ -327,7 +327,7 @@ export default function CampaignInsightPage() {
 
             {events.length === 0 ? (
               <div className="p-10 text-center">
-                <CalendarStar size={48} className="text-slate-200 mx-auto mb-3" />
+                <CalendarDays size={48} className="text-slate-200 mx-auto mb-3" />
                 <p className="text-sm text-slate-400">Tidak ada event tersedia</p>
               </div>
             ) : (
