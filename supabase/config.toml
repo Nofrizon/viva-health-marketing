@@ -1,0 +1,4 @@
+project_id = "cfsrmvlbleqjqttnxblz"
+
+[db]
+schema = "public"
