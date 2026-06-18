@@ -274,9 +274,10 @@ export async function POST(request: Request): Promise<NextResponse> {
       ? query 
       : `Viva Apotek ${query}`;
 
+    // ✅ PERBAIKAN: gunakan signal timeout sebagai pengganti timeout
     const searchRes = await fetch(
       `https://serpapi.com/search.json?engine=google_maps&q=${encodeURIComponent(fullQuery)}&api_key=${SERPAPI_KEY}`,
-      { timeout: 10000 }
+      { signal: AbortSignal.timeout(10000) }
     );
 
     if (!searchRes.ok) {
@@ -298,9 +299,10 @@ export async function POST(request: Request): Promise<NextResponse> {
     // Step 2: Fetch reviews
     console.log(`[Audit] Fetching reviews for: ${place.title}`);
     
+    // ✅ PERBAIKAN: gunakan signal timeout sebagai pengganti timeout
     const reviewsRes = await fetch(
       `https://serpapi.com/search.json?engine=google_maps_reviews&data_id=${place.data_id}&api_key=${SERPAPI_KEY}&sort_by=newest&hl=id`,
-      { timeout: 10000 }
+      { signal: AbortSignal.timeout(10000) }
     );
 
     if (!reviewsRes.ok) {
