@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Target, PenTool, Hash, ClipboardCheck, X } from 'lucide-react';
+import { LayoutDashboard, Target, PenTool, Hash, ClipboardCheck, Store, X } from 'lucide-react';
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -10,6 +10,7 @@ interface SidebarProps {
 
 const menuItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/mystore', label: 'MyStore', icon: Store },
   { href: '/seo', label: 'SEO Tracker', icon: Target },
   { href: '/generate-content', label: 'AutoWrite SEO', icon: PenTool },
   { href: '/generate-caption', label: 'Workspace Socmed', icon: Hash },

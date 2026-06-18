@@ -39,6 +39,16 @@ export default function DashboardPage() {
               </td>
             </tr>
             <tr className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+              <td className="py-4 px-4 font-semibold text-slate-800">MyStore</td>
+              <td className="py-4 px-4">Kelola & Lacak Rating Toko berdasarkan Keyword</td>
+              <td className="py-4 px-4">100+ Toko</td>
+              <td className="py-4 px-4 text-right">
+                <a href="/mystore" className="inline-block bg-emerald-400 hover:bg-emerald-500 text-white font-semibold px-4 py-2 rounded-full text-xs transition-colors">
+                  Buka Fitur
+                </a>
+              </td>
+            </tr>
+            <tr className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
               <td className="py-4 px-4 font-semibold text-slate-800">Local SEO Tracker</td>
               <td className="py-4 px-4">Tracking posisi Gmaps Viva Health</td>
               <td className="py-4 px-4">Terakhir update: Hari ini</td>
