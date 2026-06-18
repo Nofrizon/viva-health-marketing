@@ -1,7 +1,7 @@
 'use client';
-
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { LayoutDashboard, Target, PenTool, Hash, ClipboardCheck, X } from 'lucide-react';
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -9,24 +9,11 @@ interface SidebarProps {
 }
 
 const menuItems = [
-  {
-    href: '/audit',
-    label: 'Audit',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-      </svg>
-    ),
-  },
-  {
-    href: '/seo',
-    label: 'SEO',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-      </svg>
-    ),
-  },
+  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/seo', label: 'SEO Tracker', icon: Target },
+  { href: '/generate-content', label: 'AutoWrite SEO', icon: PenTool },
+  { href: '/generate-caption', label: 'Workspace Socmed', icon: Hash },
+  { href: '/audit', label: 'Review Audit', icon: ClipboardCheck },
 ];
 
 export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
@@ -34,34 +21,24 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
 
   return (
     <>
-      {/* Overlay untuk mobile */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
-          onClick={onClose}
-        />
-      )}
+      {/* Overlay Mobile */}
+      {isOpen && <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={onClose} />}
 
-      {/* Sidebar */}
+      {/* Sidebar - Menggunakan palet Dark Slate seperti gambar */}
       <aside
-        className={`fixed top-0 left-0 z-50 w-64 h-full bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:z-30 ${
+        className={`fixed top-0 left-0 z-50 w-64 h-full bg-[#1E293B] transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:flex-shrink-0 rounded-r-3xl lg:rounded-none ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
-          <span className="text-lg font-semibold text-gray-800">Viva Health</span>
-          <button
-            onClick={onClose}
-            className="p-1 text-gray-500 rounded-md lg:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200"
-            aria-label="Close sidebar"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+        <div className="flex items-center justify-between h-20 px-8">
+          {/* Logo mirip MOKA di gambar */}
+          <span className="text-2xl font-bold text-white tracking-widest">VIVA</span>
+          <button onClick={onClose} className="text-slate-400 lg:hidden hover:text-white">
+            <X size={24} />
           </button>
         </div>
 
-        <nav className="p-4 space-y-1">
+        <nav className="px-4 mt-6 space-y-2">
           {menuItems.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -69,13 +46,13 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                 key={item.href}
                 href={item.href}
                 onClick={onClose}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`flex items-center gap-4 px-4 py-3 rounded-2xl text-sm font-medium transition-all ${
                   isActive
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    ? 'bg-white/10 text-white' // Style menu aktif di gambar (terang transparan)
+                    : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'
                 }`}
               >
-                {item.icon}
+                <item.icon size={20} className={isActive ? 'text-white' : 'text-slate-400'} />
                 {item.label}
               </Link>
             );
