@@ -21,17 +21,14 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
 
   return (
     <>
-      {/* Overlay Mobile */}
       {isOpen && <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={onClose} />}
 
-      {/* Sidebar - Menggunakan palet Dark Slate seperti gambar */}
       <aside
-        className={`fixed top-0 left-0 z-50 w-64 h-full bg-[#1E293B] transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:flex-shrink-0 rounded-r-3xl lg:rounded-none ${
+        className={`fixed top-0 left-0 z-50 w-64 h-full bg-[#1E293B] transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:flex-shrink-0 lg:rounded-none rounded-r-3xl ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <div className="flex items-center justify-between h-20 px-8">
-          {/* Logo mirip MOKA di gambar */}
           <span className="text-2xl font-bold text-white tracking-widest">VIVA</span>
           <button onClick={onClose} className="text-slate-400 lg:hidden hover:text-white">
             <X size={24} />
@@ -48,7 +45,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                 onClick={onClose}
                 className={`flex items-center gap-4 px-4 py-3 rounded-2xl text-sm font-medium transition-all ${
                   isActive
-                    ? 'bg-white/10 text-white' // Style menu aktif di gambar (terang transparan)
+                    ? 'bg-white/10 text-white'
                     : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'
                 }`}
               >
