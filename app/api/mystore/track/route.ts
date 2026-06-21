@@ -57,8 +57,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Konfigurasi API tidak lengkap' }, { status: 500 })
     }
 
-    const searchQuery = `${keyword} ${store.name}`
-    const url = `https://serpapi.com/search.json?engine=google_maps&q=${encodeURIComponent(searchQuery)}&api_key=${apiKey}`
+    const url = `https://serpapi.com/search.json?engine=google_maps&q=${encodeURIComponent(keyword)}&hl=id&gl=id&api_key=${apiKey}`
     const response = await fetch(url)
 
     if (!response.ok) {
@@ -74,20 +73,32 @@ export async function POST(request: Request) {
     const results = data.local_results || []
 
     // 3. Find our store in results
+    // Match by store name (case insensitive, partial match) or broader Viva brand detection
+    const storeNameLower = store.name.toLowerCase()
+    const storeWords = storeNameLower.split(/\s+/).filter((w: string) => w.length > 2)
+
     let rank = 0
     let stars = 0
+    let matchedTitle = ''
 
     for (let i = 0; i < results.length; i++) {
       const result = results[i]
-      if (
-        result.title?.toLowerCase().includes('viva apotek') ||
-        result.title?.toLowerCase().includes(store.name.toLowerCase())
-      ) {
+      const titleLower = result.title?.toLowerCase() || ''
+
+      // Match if title contains "viva apotek", "viva health", or 2+ words from store name
+      const vivaBrand = titleLower.includes('viva apotek') || titleLower.includes('viva health')
+      const matchWords = storeWords.filter((w: string) => titleLower.includes(w))
+      const partialNameMatch = matchWords.length >= 2
+
+      if (vivaBrand || partialNameMatch) {
         rank = i + 1
         stars = result.rating || 0
+        matchedTitle = result.title || ''
         break
       }
     }
+
+    console.log(`[Track] keyword="${keyword}" store="${store.name}" found at rank=${rank} title="${matchedTitle}" results_count=${results.length}`)
 
     // 4. Get previous tracking data for trend calculation
     const { data: previousTrack } = await supabase
